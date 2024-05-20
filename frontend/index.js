@@ -8,17 +8,12 @@ async function sprintChallenge5() { // Note the async keyword so you can use `aw
   // 🧠 Use Axios to GET learners and mentors.
   // ❗ Use the variables `mentors` and `learners` to store the data.
   // ❗ Use the await keyword when using axios.
-  let mentors = []
-  let learners = []
-  try {
-    let mentors = await axios.get('http://localhost:3003/api/learners')
-    let learners = await axios.get('http://localhost:3003/api/mentors')
+  
+  let mentors = await axios.get("http://localhost:3003/api/mentors")
+  let learners = await axios.get("http://localhost:3003/api/learners")
 
-    learners = learners.data
-    mentors = mentors.data
-  } catch (error) {
-    console.error(`Error fetching data: ${error}`)
-  }
+  let mentorsRes = mentors.data;
+  let learnersRes = learners.data;
 
   // 👆 ==================== TASK 1 END ====================== 👆
 
@@ -36,19 +31,17 @@ async function sprintChallenge5() { // Note the async keyword so you can use `aw
   //     "Grace Hopper"
   //   ]`
   // }
-
-  const mentorsDict = mentors.reduce((acc, mentor) => {
-    acc[mentor.id] = `${mentor.firstName} ${mentor.lastName}`
-    return acc;
-  }, {});
-
-  learners = learners.map(learner => ({
-    id: learner.id,
-    fullName: learner.fullName,
-    email: learner.email,
-    mentors: learner.mentorIds.map(mentorId => mentorsDict[mentorId])
-  }));
-
+  const formattedData = []
+  learnersRes.forEach(learner => {
+    const result = {
+      ...learner,
+      mentors: learner.mentors.map(mID => {
+        const mentor = mentorsRes.find(mentorObj => mentorObj.id == mID)
+        return mentor.firstName + " " + mentor.lastName 
+      })
+    }
+    formattedData.push(result)
+  })
 
   // 👆 ==================== TASK 2 END ====================== 👆
 
@@ -59,7 +52,7 @@ async function sprintChallenge5() { // Note the async keyword so you can use `aw
 
   // 👇 ==================== TASK 3 START ==================== 👇
 
-  for (let learner of learners) { // looping over each learner object
+  formattedData.forEach(learner => { // looping over each learner object
 
     // 🧠 Flesh out the elements that describe each learner
     // ❗ Give the elements below their (initial) classes, textContent and proper nesting.
@@ -69,29 +62,26 @@ async function sprintChallenge5() { // Note the async keyword so you can use `aw
     // ❗ Inspect the mock site closely to understand what the initial texts and classes look like!
 
     const card = document.createElement('div')
-    card.classList.add('card')
-
     const heading = document.createElement('h3')
-    heading.textContent = learner.fullName
-
     const email = document.createElement('div')
-    email.textContent = learner.email
-    email.classList.add('email')
-
     const mentorsHeading = document.createElement('h4')
-    mentorsHeading.textContent = 'Mentors'
-    mentorsHeading.classList.add('closed')
-
-    const mentorList = document.createElement('u1')
-    for (let mentor of learner.mentors) {
-      const li = document.createElement('li')
-      li.textContent = mentor
-      mentorList.appendChild(li)
-    }
+    const mentorsList = document.createElement('ul')
 
     card.appendChild(heading)
     card.appendChild(email)
     card.appendChild(mentorsHeading)
+    learner.mentors.forEach(mentorName => {
+      const li = document.createElement('li')
+      li.textContent = mentorName
+      mentorsList.appendChild(li)
+    })
+
+    card.classList.add("card")
+    heading.textContent = learner.fullName
+    email.textContent = learner.email
+    mentorsHeading.textContent = "Mentors"
+    mentorsHeading.classList.add('closed')
+
 
     // 👆 ==================== TASK 3 END ====================== 👆
 
@@ -138,7 +128,7 @@ async function sprintChallenge5() { // Note the async keyword so you can use `aw
       }
     })
   }
-
+  )
   const footer = document.querySelector('footer')
   const currentYear = new Date().getFullYear()
   footer.textContent = `© BLOOM INSTITUTE OF TECHNOLOGY ${currentYear}`
